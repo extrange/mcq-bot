@@ -1,0 +1,29 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--unsafe]
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: requirements-txt-fixer
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.6
+    hooks:
+      - id: ruff
+      - id: ruff-format
+  # Secret scanning
+  - repo: local
+    hooks:
+      - id: trufflehog
+        name: TruffleHog
+        description: Scan the latest commit for any secrets
+        entry: bash -c 'trufflehog git file://. --since-commit HEAD --only-verified --fail --no-update'
+        language: system
+        stages: ["commit", "push"]
+  # TODO consider linting commit messages for automated release note generation
+  # TODO add pyright (requires venv)

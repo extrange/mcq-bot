@@ -9,6 +9,10 @@
 		"dockerfile": "../Dockerfile",
 		"target": "base"
 	},
+	"runArgs": [
+		"--env-file",
+		"env/local.env"
+	],
 	"features": {
 		"ghcr.io/devcontainers/features/common-utils:2": {
 			"upgradePackages": false,
@@ -17,7 +21,7 @@
 			"userGid": "automatic",
 			"installZsh": false,
 			"installOhMyZsh": false,
-			"installOhMyZshConfig": false,
+			"installOhMyZshConfig": false
 		},
 		"ghcr.io/devcontainers-contrib/features/pre-commit:2": {
 			"version": "latest"

@@ -67,10 +67,8 @@ def main(folder: Path, parser: BaseParser):
     for filename, processed_rows in processed_files:
         for row in processed_rows:
             was_qn_added = add_question_and_answers(
-                question_text=row["question"]["text"],
-                explanation=row["question"]["explanation"],
-                filename=filename,
-                answers=row["answers"],
+                row,
+                filename,
             )
             if was_qn_added:
                 summary[filename]["added"] += 1

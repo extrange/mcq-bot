@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from .connection import get_engine
 from .parsers.utils import validate_only_one_correct_answer
 from .schema import Answer, Base, Filename, Question
-from .types import AnswerType
+from .types import ProcessedRow
 
 logger = logging.getLogger(__file__)
 
@@ -46,10 +46,15 @@ def _get_question_by_text(sess: Session, text: str):
     return question
 
 
-def add_question_and_answers(
-    question_text: str, explanation: str, filename: str, answers: list[AnswerType]
-):
-    """Returns True if the question was added, else False (if it was a duplicate)"""
+def add_question_and_answers(row: ProcessedRow, filename: str):
+    """
+    Add questions
+    Returns True if the question was added, else False (if it was a duplicate)
+    """
+    question_text = row["question"]["text"]
+    explanation = row["question"]["explanation"]
+    answers = row["answers"]
+
     with Session(get_engine()) as s:
         filename_id = _add_filename_if_not_exists(s, filename)
         try:

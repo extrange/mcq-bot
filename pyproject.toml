@@ -21,6 +21,7 @@ openpyxl = "^3.1.5"
 ipykernel = "^6.29.5"
 pyright = "^1.1.375"
 ruff = "^0.5.7"
+pytest = "^8.3.2"
 
 [build-system]
 requires = ["poetry-core"]

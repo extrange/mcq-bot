@@ -1,7 +1,7 @@
 import logging
 
 from mcq_bot.senders.sender_types import is_answer_callback
-from telethon import TelegramClient, events
+from telethon import TelegramClient, events, functions, types
 
 from .exam import handle_exam_date
 from .next_question import handle_next_question_callback
@@ -35,3 +35,20 @@ def register_handlers(client: TelegramClient):
     client.add_event_handler(
         handle_question_callback, events.CallbackQuery(data=is_answer_callback)
     )
+    logger.info("Registered handlers successfully.")
+
+
+async def register_commands(client: TelegramClient):
+    result = await client(
+        functions.bots.SetBotCommandsRequest(
+            scope=types.BotCommandScopeDefault(),
+            lang_code="en",
+            commands=[
+                types.BotCommand(command="exam", description="Set your exam date"),
+                types.BotCommand(
+                    command="question", description="Start doing questions"
+                ),
+            ],
+        )
+    )
+    logger.info("Registering commands...%s", "successful" if result else "failed")

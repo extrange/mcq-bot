@@ -6,7 +6,7 @@ from sqlalchemy_utils import create_database, database_exists
 
 from mcq_bot.db.connection import get_engine
 from mcq_bot.db.schema import Base
-from mcq_bot.handlers.register import register_handlers
+from mcq_bot.handlers.register import register_commands, register_handlers
 from mcq_bot.utils.logger import setup_logging
 
 from .client import get_client
@@ -24,7 +24,9 @@ async def main():
     client = get_client()
 
     register_handlers(client)
+
     await client.start()  # type: ignore
+    await register_commands(client)
 
     # Start scheduling jobs
     job = schedule.every().day.at(Settings.daily_nudge_time.isoformat())

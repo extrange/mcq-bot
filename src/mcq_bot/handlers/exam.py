@@ -2,7 +2,7 @@ import logging
 from datetime import date
 
 from dateutil import parser
-from mcq_bot.db.main import add_user, get_user
+from mcq_bot.managers.user import UserManager
 from mcq_bot.utils.message import extract_command_content, get_user_id
 from sqlalchemy.exc import SQLAlchemyError
 from telethon.custom import Message
@@ -20,7 +20,7 @@ async def handle_exam_date(message: Message):
     extracted_date = extract_command_content(text)
 
     if not extracted_date:
-        user = get_user(user_id)
+        user = UserManager.get_user(user_id)
 
         await message.reply(
             f"""
@@ -36,7 +36,7 @@ async def handle_exam_date(message: Message):
     try:
         parsed_datetime = parser.parse(extracted_date, dayfirst=True, fuzzy=True)
         parsed_date = parsed_datetime.date()
-        add_user(user_id, parsed_date)
+        UserManager.add_user(user_id, parsed_date)
 
     except parser.ParserError as e:
         await message.reply(

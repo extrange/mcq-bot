@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import TypedDict
 
 from mcq_bot.db.db_types import ProcessedRow
-from mcq_bot.db.main import add_question_and_answers, create_tables
 from mcq_bot.db.parsers.base import BaseParser
 from mcq_bot.db.parsers.excel import ExcelParser
+from mcq_bot.db.utils import add_question_and_answers, create_tables
 from mcq_bot.utils.logger import setup_logging
 
 setup_logging()

@@ -81,6 +81,7 @@ class User(Base):
 
     joined_dt: Mapped[datetime] = mapped_column(server_default=func.now())
     exam_dt: Mapped[date]
+    is_scheduled: Mapped[bool] = mapped_column(default=True)
 
 
 def _test_create(tables_to_drop: list[Base]):

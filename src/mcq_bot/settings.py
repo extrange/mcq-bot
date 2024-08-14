@@ -1,3 +1,4 @@
+from datetime import time
 from pathlib import Path
 
 from pydantic import IPvAnyAddress, SecretStr
@@ -12,6 +13,7 @@ class _Settings(BaseSettings):
     dc: IPvAnyAddress
     db: Path
     bot_token: SecretStr
+    daily_nudge_time: time = time(7, 0)
 
     openai_api_key: SecretStr
     notify_chat_id: int

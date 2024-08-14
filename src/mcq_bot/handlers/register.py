@@ -1,8 +1,10 @@
 import logging
 
+from mcq_bot.senders.sender_types import is_answer_callback
 from telethon import TelegramClient, events
 
 from .exam import handle_exam_date
+from .next_question import handle_next_question_callback
 from .question import handle_question
 from .question_callback import handle_question_callback
 from .start import handle_start
@@ -27,4 +29,9 @@ def register_handlers(client: TelegramClient):
     client.add_event_handler(
         handle_question, events.NewMessage(incoming=True, pattern="/question")
     )
-    client.add_event_handler(handle_question_callback, events.CallbackQuery())
+    client.add_event_handler(
+        handle_next_question_callback, events.CallbackQuery(pattern=rb"\d+")
+    )
+    client.add_event_handler(
+        handle_question_callback, events.CallbackQuery(data=is_answer_callback)
+    )

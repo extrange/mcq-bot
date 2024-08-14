@@ -1,5 +1,6 @@
 FROM python:3.12-slim AS base
 
+ENV POETRY_VERSION=1.8.3
 ENV TZ=Asia/Singapore
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -25,7 +26,7 @@ RUN curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main
 
 FROM base AS builder
 
-RUN pip install poetry
+RUN pip install --no-cache-dir poetry=="$POETRY_VERSION"
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -36,10 +37,8 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-COPY --chown=1000 poetry.lock pyproject.toml ./
+COPY poetry.lock pyproject.toml ./
 
-# Install runtime deps - uses $POETRY_VIRTUALENVS_IN_PROJECT internally
-# Installs to $PYSETUP_PATH
 RUN --mount=type=cache,target=${POETRY_CACHE_DIR} \
     poetry install --without=dev --no-root
 
@@ -58,6 +57,6 @@ USER 1000
 # Copy virtual environment from builder
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
-COPY --chown=1000 . /app
+COPY . /app
 
 CMD ["python", "-m", "mcq_bot.main"]

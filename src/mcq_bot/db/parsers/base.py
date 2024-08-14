@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from mcq_bot.db.types import ProcessedRow
+from mcq_bot.db.db_types import ProcessedRow
 
 
 class BaseParser(ABC):

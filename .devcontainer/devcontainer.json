@@ -48,7 +48,8 @@
 				"github.vscode-github-actions",
 				"ms-azuretools.vscode-docker",
 				"exiasr.hadolint",
-				"tamasfe.even-better-toml"
+				"tamasfe.even-better-toml",
+				"inferrinizzard.prettier-sql-vscode"
 			],
 			"settings": {
 				"python.defaultInterpreterPath": "./.venv/bin/python",

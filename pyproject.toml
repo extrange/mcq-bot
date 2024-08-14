@@ -1,10 +1,10 @@
 # View options here: https://python-poetry.org/docs/configuration
 [tool.poetry]
 description = ""
+name = "mcq_bot"
 authors = ["extrange <29305375+extrange@users.noreply.github.com>"]
 readme = "README.md"
 package-mode = false
-packages = [{ include = "mcq_bot", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -15,6 +15,7 @@ pydantic-settings = "^2.4.0"
 sqlalchemy = "^2.0.32"
 sqlalchemy-utils = "^0.41.2"
 openpyxl = "^3.1.5"
+python-dateutil = "^2.9.0.post0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -22,6 +23,9 @@ ipykernel = "^6.29.5"
 pyright = "^1.1.375"
 ruff = "^0.5.7"
 pytest = "^8.3.2"
+
+[tool.poetry.scripts]
+start = "mcq_bot.main:start"
 
 [build-system]
 requires = ["poetry-core"]

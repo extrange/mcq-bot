@@ -1,13 +1,14 @@
 import logging
+from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .connection import get_engine
+from .db_types import ProcessedRow
 from .parsers.utils import validate_only_one_correct_answer
-from .schema import Answer, Base, Filename, Question
-from .types import ProcessedRow
+from .schema import Answer, Attempt, Base, Filename, Question, User
 
 logger = logging.getLogger(__file__)
 
@@ -48,7 +49,8 @@ def _get_question_by_text(sess: Session, text: str):
 
 def add_question_and_answers(row: ProcessedRow, filename: str):
     """
-    Add questions
+    Add questions from ProcessedRows to the database. Duplicate questions are detected by identical question_texts and explanations.
+
     Returns True if the question was added, else False (if it was a duplicate)
     """
     question_text = row["question"]["text"]
@@ -86,3 +88,108 @@ def add_question_and_answers(row: ProcessedRow, filename: str):
                 duplicate_question.filename.path,
             )
             return False
+
+
+def add_user(user_id: int, exam_dt: date):
+    """
+    Add a user. If the user already exists, updates their exam date.
+    """
+    with Session(get_engine()) as s:
+        user = s.scalar(select(User).where(User.id == user_id))
+        if not user:
+            user = User(id=user_id, exam_dt=exam_dt)
+            s.add(user)
+            s.flush()
+
+        user.exam_dt = exam_dt
+        s.commit()
+    return user
+
+
+def get_user(user_id: int):
+    with Session(get_engine()) as s:
+        user = s.scalar(select(User).where(User.id == user_id))
+    if not user:
+        return None
+    return user
+
+
+def get_filenames():
+    """
+    Return a list of Filenames available in the DB.
+    """
+    with Session(get_engine()) as s:
+        filenames = s.scalars(select(Filename)).fetchall()
+    return filenames
+
+
+def get_random_question(user_id: int, filename: str | None = None):
+    """
+    Return a random question, which has not been attempted by the user, optionally filtering by a filename.
+
+    If there are no unattempted questions, returns None.
+    """
+    with Session(get_engine()) as s:
+        attempted_qn_ids = (
+            select(Answer.question_id)
+            .where(Attempt.user_id == user_id)
+            .where(Answer.id == Attempt.answer_id)
+        )
+
+        stmt = (
+            select(Question)
+            .where(Question.id.not_in(attempted_qn_ids))
+            .order_by(func.random())
+            .limit(1)
+        )
+        if filename:
+            filename_id = (
+                select(Filename.id).where(Filename.path == filename).scalar_subquery()
+            )
+            stmt = stmt.where(Question.filename_id == filename_id)
+
+        qn = s.scalar(stmt)
+    return qn
+
+
+def add_or_update_user_attempt(user_id: int, answer_id: int):
+    with Session(get_engine()) as s:
+        attempt = s.scalar(
+            select(Attempt)
+            .where(Attempt.user_id == user_id)
+            .where(Attempt.answer_id == answer_id)
+        )
+        if not attempt:
+            attempt = Attempt(user_id=user_id, answer_id=answer_id)
+            s.add(attempt)
+            s.commit()
+
+
+def get_question(question_id: int):
+    with Session(get_engine()) as s:
+        question = s.scalar(select(Question).where(Question.id == question_id))
+    return question
+
+
+def get_question_by_answer(answer_id: int):
+    with Session(get_engine()) as s:
+        question = s.scalar(select(Answer.question).where(Answer.id == answer_id))
+    return question
+
+
+def get_answer(answer_id: int):
+    with Session(get_engine()) as s:
+        answer = s.scalar(select(Answer).where(Answer.id == answer_id))
+    return answer
+
+
+def get_correct_answer(question_id: int):
+    with Session(get_engine()) as s:
+        answer = s.scalar(
+            select(Answer)
+            .where(Answer.question_id == question_id)
+            .where(Answer.is_correct)
+        )
+        if not answer:
+            raise ValueError(f"No correct answer found for {question_id=}")
+    return answer

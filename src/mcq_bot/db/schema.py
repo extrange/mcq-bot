@@ -1,8 +1,7 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy.schema import CreateTable
 from sqlalchemy.sql import func
 
 from .connection import get_engine
@@ -26,8 +25,12 @@ class Question(Base):
     explanation: Mapped[str | None]
 
     # Relationships
-    filename: Mapped["Filename"] = relationship(back_populates="questions")
-    answers: Mapped[list["Answer"]] = relationship(back_populates="question")
+    filename: Mapped["Filename"] = relationship(
+        back_populates="questions", lazy="joined", innerjoin=True
+    )
+    answers: Mapped[list["Answer"]] = relationship(
+        back_populates="question", lazy="joined", order_by="Answer.key"
+    )
 
 
 class Answer(Base):
@@ -57,15 +60,27 @@ class Filename(Base):
 class Attempt(Base):
     __tablename__ = "attempt"
     __table_args__ = (
-        UniqueConstraint("user_id", "question_id"),
+        # A user can only provide one answer to a question.
+        # If they change their answer, it's an update.
         UniqueConstraint("user_id", "answer_id"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int]
-    question_id: Mapped[int] = mapped_column(ForeignKey("question.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     answer_id: Mapped[int] = mapped_column(ForeignKey("answer.id"))
-    attempt_dt: Mapped[datetime]
+    attempt_dt: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    answer: Mapped[Answer] = relationship()
+
+
+class User(Base):
+    __tablename__ = "user"
+
+    # Identical to their Telegram user id.
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    joined_dt: Mapped[datetime] = mapped_column(server_default=func.now())
+    exam_dt: Mapped[date]
 
 
 def _test_create(tables_to_drop: list[Base]):
@@ -80,10 +95,3 @@ def _test_create(tables_to_drop: list[Base]):
         except Exception as e:
             print(e)
     Base.metadata.create_all(get_engine(), checkfirst=False)
-
-
-def _dump_schema():
-    from sqlalchemy.dialects import sqlite
-
-    for m in [Question, Filename, Answer, Attempt]:
-        print(CreateTable(m.__table__).compile(dialect=sqlite.dialect()))

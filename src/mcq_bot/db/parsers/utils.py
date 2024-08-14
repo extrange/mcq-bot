@@ -1,4 +1,4 @@
-from mcq_bot.db.types import AnswerType, NoCorrectAnswerException
+from mcq_bot.db.db_types import AnswerType, NoCorrectAnswerException
 
 
 def validate_only_one_correct_answer(answers: list[AnswerType]):

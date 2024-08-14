@@ -4,8 +4,8 @@ from typing import Tuple
 from openpyxl import load_workbook
 from openpyxl.cell import Cell
 
-from mcq_bot.db.types import (
-    VALID_ANSWER_KEYS,
+from mcq_bot.db.db_types import (
+    VALID_ANSWER_LETTERS,
     AnswerKeys,
     AnswerType,
     NoCorrectAnswerException,
@@ -45,7 +45,7 @@ class ExcelParser(BaseParser):
         question = self._extract_question(row)
         correct_letter = str(row[7].value).upper().strip()
 
-        if not correct_letter or correct_letter not in VALID_ANSWER_KEYS:
+        if not correct_letter or correct_letter not in VALID_ANSWER_LETTERS:
             raise NoCorrectAnswerException(
                 f"Invalid or no correct answer provided: {correct_letter=}"
             )
@@ -93,7 +93,7 @@ class ExcelParser(BaseParser):
                 # Skip rows without questions
                 if r[1].value is None:
                     continue
-                processed_rows.append(self._process_row(r, VALID_ANSWER_KEYS))
+                processed_rows.append(self._process_row(r, VALID_ANSWER_LETTERS))
             except NoCorrectAnswerException as e:
                 raise NoCorrectAnswerException(
                     f"Error while processing row {idx + 2} for file {path}"

@@ -48,7 +48,7 @@ def process_files(
     return processed_files
 
 
-def main(folder: Path, parser: BaseParser):
+def main(folder: Path, db_path, parser: BaseParser):
     summary: dict[str, FileSummary] = defaultdict(
         lambda: {"total": 0, "added": 0, "duplicate": 0}
     )
@@ -66,10 +66,7 @@ def main(folder: Path, parser: BaseParser):
 
     for filename, processed_rows in processed_files:
         for row in processed_rows:
-            was_qn_added = add_question_and_answers(
-                row,
-                filename,
-            )
+            was_qn_added = add_question_and_answers(row, filename, db_path)
             if was_qn_added:
                 summary[filename]["added"] += 1
             else:
@@ -79,15 +76,19 @@ def main(folder: Path, parser: BaseParser):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         print(
-            "You must supply a folder where questions will be added (recursively)",
+            "You must supply a folder where questions will be added (recursively), and the path to a DB",
             file=sys.stderr,
         )
         sys.exit()
 
-    path = Path(sys.argv[1])
+    questions_path = Path(sys.argv[1])
+    db_path = Path(sys.argv[2])
 
-    path_with_cwd = path if path.is_absolute() else Path.cwd() / path
+    question_path_with_cwd = (
+        questions_path if questions_path.is_absolute() else Path.cwd() / questions_path
+    )
+    db_path_with_cwd = db_path if db_path.absolute() else Path.cwd() / db_path
 
-    main(Path(sys.argv[1]), ExcelParser())
+    main(questions_path, db_path, ExcelParser())

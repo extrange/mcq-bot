@@ -1,5 +1,6 @@
 import logging
 from functools import cache
+from pathlib import Path
 
 from sqlalchemy import event
 from sqlalchemy.engine import URL, Engine, create_engine
@@ -11,10 +12,10 @@ logger = logging.getLogger(__file__)
 
 
 @cache
-def get_engine():
+def get_engine(db_path: Path | None = None):
     connection_url = URL.create(
         "sqlite",
-        database=str(Settings.db),
+        database=str(db_path) if db_path else str(Settings.db),
     )
     engine = create_engine(connection_url)
     logger.info("Connected to db at %s", connection_url)

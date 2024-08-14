@@ -1,0 +1,12 @@
+services:
+  mcq-bot:
+    build:
+      dockerfile: ./Dockerfile
+      target: deployment
+    env_file:
+      - path: env/prod.env
+        required: true
+    restart: always
+    volumes:
+      - ./credentials:/app/credentials
+      - ./data:/app/data

@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -46,7 +47,7 @@ def _get_question_by_text(sess: Session, text: str):
     return question
 
 
-def add_question_and_answers(row: ProcessedRow, filename: str):
+def add_question_and_answers(row: ProcessedRow, filename: str, db_path: Path):
     """
     Add questions from ProcessedRows to the database. Duplicate questions are detected by identical question_texts and explanations.
 
@@ -56,7 +57,7 @@ def add_question_and_answers(row: ProcessedRow, filename: str):
     explanation = row["question"]["explanation"]
     answers = row["answers"]
 
-    with Session(get_engine()) as s:
+    with Session(get_engine(db_path)) as s:
         filename_id = _add_filename_if_not_exists(s, filename)
         try:
             question = _add_question(s, question_text, explanation, filename_id)

@@ -28,7 +28,7 @@ async def handle_exam_date(message: Message):
 
         You can set or update your exam date with `/exam your-exam-date`.
 
-        For example: `/exam 22-10-2024`
+        For example: `/exam 1 Jan 2024`
         """
         )
         raise StopPropagation
@@ -53,5 +53,5 @@ async def handle_exam_date(message: Message):
     days_from_now = parsed_date - date.today()
 
     await message.reply(
-        f"I've set your exam date as {parsed_date.isoformat()}, which is {days_from_now.days} days from today. If that's not correct, just send me another date with `/exam`."
+        f"I've set your exam date as {parsed_date.isoformat()}, which is {days_from_now.days} days from today. If that's not correct, just send me another date with `/exam`.\n\nIf you are ready, start questions with `/question`."
     )

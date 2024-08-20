@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Sequence
 
 from mcq_bot.db.schema import User
 from sqlalchemy import select
@@ -39,3 +40,8 @@ class UserManager(BaseManager):
             stmt = stmt.where(User.exam_dt > today)
 
         return s.scalars(stmt).fetchall()
+
+    @classmethod
+    @with_session
+    def get_all_users(cls, s: Session) -> Sequence[User]:
+        return s.scalars(select(User)).fetchall()

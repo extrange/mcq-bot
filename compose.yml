@@ -1,5 +1,6 @@
 services:
   mcq-bot:
+    container_name: mcq-bot
     build:
       dockerfile: ./Dockerfile
       target: deployment

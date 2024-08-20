@@ -24,8 +24,11 @@ class UserManager(BaseManager):
 
     @classmethod
     @with_session
-    def get_user(cls, s: Session, user_id: int):
-        return s.scalar(select(User).where(User.id == user_id))
+    def get_user(cls, s: Session, user_id: int) -> User:
+        result = s.scalar(select(User).where(User.id == user_id))
+        if not result:
+            raise ValueError
+        return result
 
     @classmethod
     @with_session

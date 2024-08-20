@@ -10,6 +10,9 @@ from .connection import get_engine
 class Base(DeclarativeBase): ...
 
 
+# All datetime objects are in UTC.
+
+
 class Question(Base):
     __tablename__ = "question"
 
@@ -60,8 +63,7 @@ class Filename(Base):
 class Attempt(Base):
     __tablename__ = "attempt"
     __table_args__ = (
-        # A user can only provide one answer to a question.
-        # If they change their answer, it's an update.
+        # A user can submit multiple answers (as attempts) for a question.
         UniqueConstraint("user_id", "answer_id"),
     )
 

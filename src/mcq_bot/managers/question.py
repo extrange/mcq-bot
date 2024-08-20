@@ -19,21 +19,34 @@ class QuestionManager(BaseManager):
 
     @classmethod
     @with_session
+    def get_question_count(cls, s: Session, filename: str | None = None):
+        """Get the number of questions for a Filename.path, or all if None."""
+        query = select(func.count()).select_from(Question)
+        if filename:
+            query = query.join(Filename).where(Filename.path == filename)
+        result = s.scalar(query)
+        if not result:
+            raise ValueError
+        return result
+
+    @classmethod
+    @with_session
     def get_random_question(cls, s: Session, user_id: int, filename: str | None = None):
         """
-        Return a random question, which has not been attempted by the user, optionally filtering by a filename.
+        Return a random question, which has not been attempted by the user or which was incorrect, optionally filtering by a filename.
 
         If there are no unattempted questions, returns None.
         """
-        attempted_qn_ids = (
+        attempted_correct_qn_ids = (
             select(Answer.question_id)
             .where(Attempt.user_id == user_id)
             .where(Answer.id == Attempt.answer_id)
+            .where(Answer.is_correct)
         )
 
         stmt = (
             select(Question)
-            .where(Question.id.not_in(attempted_qn_ids))
+            .where(Question.id.not_in(attempted_correct_qn_ids))
             .order_by(func.random())
             .limit(1)
         )

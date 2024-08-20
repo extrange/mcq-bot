@@ -8,6 +8,7 @@ from .next_question import handle_next_question_callback
 from .question import handle_question
 from .question_callback import handle_question_callback
 from .start import handle_start
+from .stats import handle_stats
 
 logger = logging.getLogger(__file__)
 
@@ -30,6 +31,9 @@ def register_handlers(client: TelegramClient):
         handle_question, events.NewMessage(incoming=True, pattern="/question")
     )
     client.add_event_handler(
+        handle_stats, events.NewMessage(incoming=True, pattern="/stats")
+    )
+    client.add_event_handler(
         handle_next_question_callback, events.CallbackQuery(pattern=rb"\d+")
     )
     client.add_event_handler(
@@ -48,6 +52,7 @@ async def register_commands(client: TelegramClient):
                 types.BotCommand(
                     command="question", description="Start doing questions"
                 ),
+                types.BotCommand(command="stats", description="Show your stats"),
             ],
         )
     )

@@ -7,16 +7,20 @@ from pydantic_settings import BaseSettings
 
 class _Settings(BaseSettings):
     # Telegram related
-    api_id: int
-    api_hash: SecretStr
-    session_file: Path
-    dc: IPvAnyAddress
-    db: Path
-    bot_token: SecretStr
-    daily_nudge_time: time = time(7, 0)
+    API_ID: int
+    API_HASH: SecretStr
+    SESSION_FILE: Path
+    TELEGRAM_DC: IPvAnyAddress
+    DB_PATH: Path
+    BOT_TOKEN: SecretStr
 
-    openai_api_key: SecretStr
-    notify_chat_id: int
+    # In SGT
+    # Example: ["0700","1100"]
+    DAILY_NUDGE_TIMES: list[time]
+
+    OPENAI_API_KEY: SecretStr
+    NOTIFY_CHAT_ID: int
+    TZ: str
 
 
 Settings = _Settings.model_validate({})

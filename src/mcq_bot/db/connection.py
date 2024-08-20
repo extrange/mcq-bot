@@ -15,7 +15,7 @@ logger = logging.getLogger(__file__)
 def get_engine(db_path: Path | None = None):
     connection_url = URL.create(
         "sqlite",
-        database=str(db_path) if db_path else str(Settings.db),
+        database=str(db_path) if db_path else str(Settings.DB_PATH),
     )
     engine = create_engine(connection_url)
     logger.info("Connected to db at %s", connection_url)

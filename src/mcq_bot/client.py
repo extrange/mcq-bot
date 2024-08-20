@@ -8,8 +8,8 @@ from mcq_bot.settings import Settings
 @cache
 def get_client():
     client = TelegramClient(
-        Settings.session_file,
-        Settings.api_id,
-        Settings.api_hash.get_secret_value(),
+        Settings.SESSION_FILE,
+        Settings.API_ID,
+        Settings.API_HASH.get_secret_value(),
     )
     return client

@@ -7,12 +7,23 @@ from mcq_bot.managers.answer import AnswerManager
 from mcq_bot.managers.attempt import AttemptManager
 from mcq_bot.managers.question import QuestionManager
 from mcq_bot.senders.sender_types import AnswerCallback
-from mcq_bot.utils.message import get_user_name
+from mcq_bot.utils.message import get_attempted_today, get_daily_target, get_user_name
 from telethon import Button, events
 from telethon.custom import Message
 from telethon.events import StopPropagation
 
 logger = logging.getLogger(__file__)
+
+
+def _get_daily_target_prompt(user_id: int):
+    target = get_daily_target(user_id)
+    attempted = get_attempted_today(user_id)
+    if attempted >= target:
+        return (
+            f"You've completed your target for today! ({attempted}/{target})\U0001f389"
+        )
+    remaining = target - attempted
+    return f"{attempted} done so far, {remaining} to go!"
 
 
 def _get_answered_qn(question: Question, answer: Answer):
@@ -59,11 +70,12 @@ async def handle_question_callback(event: events.CallbackQuery.Event):
 
     answered_qn = _get_answered_qn(question, answer)
 
+    daily_target_prompt = _get_daily_target_prompt(user_id)
+
     await message.edit(
-        text=str(message.text) + "\n\n" + answered_qn,
+        text=str(message.text) + "\n\n" + answered_qn + "\n\n" + daily_target_prompt,
         buttons=Button.inline("Next question", user_id),
     )
-    print(user_id)
 
     await event.answer()
     raise StopPropagation

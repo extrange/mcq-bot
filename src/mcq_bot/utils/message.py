@@ -1,5 +1,6 @@
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import TypedDict, cast
+from zoneinfo import ZoneInfo
 
 from telethon.custom import Message
 from telethon.types import User
@@ -7,6 +8,7 @@ from telethon.types import User
 from mcq_bot.managers.attempt import AttemptManager
 from mcq_bot.managers.question import QuestionManager
 from mcq_bot.managers.user import UserManager
+from mcq_bot.settings import Settings
 
 
 def get_user_id(message: Message):
@@ -73,3 +75,21 @@ def format_stats_message(stats: Stats) -> str:
         f"Days till exam: **{stats["days_till_exam"]}**\n"
         f"Questions to do per day: **{remaining/stats["days_till_exam"]:.0f}**"
     )
+
+
+def get_daily_target(user_id: int) -> int:
+    """Return the number of questions the user should do daily."""
+    stats = get_stats(user_id)
+    return round((stats["total"] - stats["attempted"]) / stats["days_till_exam"])
+
+
+def get_attempted_today(user_id: int) -> int:
+    """Returns the number of question attempts made by the user today."""
+    # Database times are in UTC, so we convert first
+    since_dt = (
+        datetime.now(ZoneInfo(Settings.TZ))
+        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .astimezone(timezone.utc)
+    )
+    stats = AttemptManager.get_attempt_stats(user_id=user_id, since_dt=since_dt)
+    return len(stats)

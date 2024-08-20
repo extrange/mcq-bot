@@ -29,8 +29,9 @@ async def main():
     await register_commands(client)
 
     # Start scheduling jobs
-    job = schedule.every().day.at(Settings.daily_nudge_time.isoformat())
-    asyncio.create_task(start_schedule(asyncio.get_running_loop(), job))
+    for t in Settings.DAILY_NUDGE_TIMES:
+        job = schedule.every().day.at(t.isoformat(), tz=Settings.TZ)
+        asyncio.create_task(start_schedule(asyncio.get_running_loop(), job))
 
     await client.run_until_disconnected()  # type: ignore
 

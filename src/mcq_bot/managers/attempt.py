@@ -86,12 +86,14 @@ class AttemptManager(BaseManager):
     ) -> Sequence[Row[tuple[bool, str, datetime, int]]]:
         """
         Return a list of
+        ```
         {
             Answer.is_correct,
             Filename.path,
             Attempt.attempt_dt,
             Attempt.user_id,
         }
+        ```
 
         `user_id`: User.id to filter by, or None for all.
         `filename`: Filename.path to filter by, or None for all.

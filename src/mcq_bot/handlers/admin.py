@@ -21,7 +21,7 @@ async def handle_admin(message: Message):
         attempted_today = get_attempted_today(user.id)
 
         msg.append(
-            f"{"(You) " if user_id == user.id else ""}"
+            f"**{"You" if user_id == user.id else f"{user.id}"}**:\n"
             f"{stats_message}\n"
             f"Attempted today: {attempted_today}"
         )

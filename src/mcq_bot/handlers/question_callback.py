@@ -23,7 +23,7 @@ def _get_daily_target_prompt(user_id: int):
             f"You've completed your target for today! ({attempted}/{target})\U0001f389"
         )
     remaining = target - attempted
-    return f"{attempted} done so far, {remaining} to go!"
+    return f"{attempted} done so far, {remaining} to go for today!"
 
 
 def _get_answered_qn(question: Question, answer: Answer):

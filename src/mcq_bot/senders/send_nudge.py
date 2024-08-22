@@ -17,7 +17,7 @@ async def send_nudge(user_id: int):
         return
 
     if not attempted:
-        nudge_message = f"{days_to_exam.days} to your exam and you haven't done any questions today, time to do at least {target} questions today!"
+        nudge_message = f"{days_to_exam.days} days to your exam and you haven't done any questions today, time to do at least {target} questions today!"
     else:
         nudge_message = (
             f"You've done {attempted} questions today, {target - attempted} more to go!"

@@ -65,7 +65,9 @@ def format_stats_message(stats: Stats) -> str:
     ```
     """
     percent_attempted = stats["attempted"] / stats["total"] * 100
-    percent_correct = stats["correct"] / stats["attempted"] * 100
+    percent_correct = (
+        stats["correct"] / stats["attempted"] * 100 if stats["attempted"] else 0
+    )
     remaining = stats["total"] - stats["attempted"]
     return (
         f"Attempted: **{stats["attempted"]} of {stats["total"]}** ({percent_attempted:.1f}%)\n"

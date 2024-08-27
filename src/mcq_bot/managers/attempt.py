@@ -71,7 +71,7 @@ class AttemptManager(BaseManager):
             query = query.where(Answer.is_correct)
 
         result = s.scalar(query)
-        if not result:
+        if result is None:
             raise ValueError
         return result
 

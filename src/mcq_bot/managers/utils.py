@@ -21,7 +21,7 @@ def with_session[**P, R, C](func: Callable[Concatenate[C, Session, P], R]):
     """
 
     def wrap(_class: C, *args: P.args, **kwargs: P.kwargs) -> R:
-        with Session(get_engine()) as s:
+        with Session(get_engine(), expire_on_commit=False) as s:
             return func(_class, s, *args, **kwargs)
 
     return wrap

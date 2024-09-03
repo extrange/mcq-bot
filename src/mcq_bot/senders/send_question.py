@@ -37,7 +37,7 @@ def _format_question(question: Question):
 
 async def send_question(user_id: int):
     client = get_client()
-    question = QuestionManager.get_random_question(user_id)
+    question = QuestionManager.fetch_random_single(user_id)
     if not question:
         await client.send_message(user_id, "You have answered all questions!")
         raise StopPropagation

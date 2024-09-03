@@ -51,7 +51,7 @@ async def _log(message: Message, user_id: int, question_id: int, answer_key: int
 
 async def handle_question_callback(event: events.CallbackQuery.Event):
     answer_cb = AnswerCallback.model_validate_json(event.data)
-    question = QuestionManager.get_question(answer_cb.question_id)
+    question = QuestionManager.fetch(answer_cb.question_id)
     answer = AnswerManager.get_answer(answer_cb.answer_id)
 
     # message.sender_id in this callback is that of the bot, not the user

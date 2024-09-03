@@ -4,14 +4,15 @@ from collections import defaultdict
 from pathlib import Path
 from typing import TypedDict
 
+from mcq_bot.db.connection import get_engine
 from mcq_bot.db.db_types import ProcessedRow
 from mcq_bot.db.parsers.base import BaseParser
 from mcq_bot.db.parsers.excel import ExcelParser
-from mcq_bot.db.utils import add_question_and_answers, create_tables
+from mcq_bot.db.schema import Base
+from mcq_bot.managers.question import QuestionManager
 from mcq_bot.utils.logger import setup_logging
 
-setup_logging()
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class FileSummary(TypedDict):
@@ -20,75 +21,73 @@ class FileSummary(TypedDict):
     duplicate: int
 
 
-def log_summary(summary: dict[str, FileSummary]):
+def _log_summary(summary: dict[str, FileSummary]):
     for file in summary.keys():
         added = summary[file]["added"]
         duplicate = summary[file]["duplicate"]
-        logger.info(
+        _logger.info(
             "Processed %s with %s expected questions", file, summary[file]["total"]
         )
-        logger.info(
-            "%s added, %s duplicates - total %s actually processed",
+        _logger.info(
+            "%s added, %s duplicates - total processed: %s",
             added,
             duplicate,
             added + duplicate,
         )
 
 
-def process_files(
+def _process_files(
     files: list[Path], parser: BaseParser
 ) -> list[tuple[str, list[ProcessedRow]]]:
+    """Run parser over all the provided files."""
     processed_files = []
     for file in files:
         processed_rows = parser.parse(file)
         processed_files.append((file.name, processed_rows))
-        logger.info(
+        _logger.info(
             "Processed %s (%s questions) successfully", str(file), len(processed_rows)
         )
     return processed_files
 
 
-def main(folder: Path, db_path, parser: BaseParser):
+def process_folder(folder: Path, parser: BaseParser) -> dict[str, FileSummary]:
+    """Parse a folder containing questions (recursively) with the provided Parser, then adds to DB."""
     summary: dict[str, FileSummary] = defaultdict(
         lambda: {"total": 0, "added": 0, "duplicate": 0}
     )
 
     # Recursive
     files = list(folder.glob("**/*.xlsx"))
-    processed_files = process_files(files, parser)
-    for file, rows in processed_files:
-        summary[file]["total"] = len(rows)
-    logger.info("Processed %s files successfully", len(files))
+    processed_files = _process_files(files, parser)
+    for filename, rows in processed_files:
+        summary[filename]["total"] = len(rows)
+        result = QuestionManager.bulk_add(rows, filename)
+        summary[filename]["added"] = len(result["added"])
+        summary[filename]["duplicate"] = len(result["duplicate"])
+    _logger.info("Processed %s files successfully", len(files))
 
-    # Only continue if all files were formatted correctly
+    # Add to DB
+    return summary
 
-    create_tables()
 
-    for filename, processed_rows in processed_files:
-        for row in processed_rows:
-            was_qn_added = add_question_and_answers(row, filename, db_path)
-            if was_qn_added:
-                summary[filename]["added"] += 1
-            else:
-                summary[filename]["duplicate"] += 1
-
-    log_summary(summary)
+def _make_path_absolute(path: Path) -> Path:
+    return path if path.is_absolute() else path.absolute()
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print(
-            "You must supply a folder where questions will be added (recursively), and the path to a DB",
-            file=sys.stderr,
+    setup_logging()
+
+    if len(sys.argv) < 2:
+        _logger.error(
+            "You must supply a folder where questions will be added (recursively)",
         )
         sys.exit()
 
-    questions_path = Path(sys.argv[1])
-    db_path = Path(sys.argv[2])
+    # Create DB tables if they didn't exist
+    Base.metadata.create_all(get_engine())
 
-    question_path_with_cwd = (
-        questions_path if questions_path.is_absolute() else Path.cwd() / questions_path
-    )
-    db_path_with_cwd = db_path if db_path.absolute() else Path.cwd() / db_path
+    questions_path = _make_path_absolute(Path(sys.argv[1]))
 
-    main(questions_path, db_path, ExcelParser())
+    result = process_folder(questions_path, ExcelParser())
+
+    _log_summary(result)

@@ -39,7 +39,7 @@ class Stats(TypedDict):
 
 def get_stats(user_id: int) -> Stats:
     """Obtain useful information about a user's question progress."""
-    total = QuestionManager.get_question_count()
+    total = QuestionManager.count()
     attempted = AttemptManager.get_attempted(user_id)
     correct = AttemptManager.get_attempted(user_id, only_correct=True)
     exam_date = UserManager.get_user(user_id).exam_dt

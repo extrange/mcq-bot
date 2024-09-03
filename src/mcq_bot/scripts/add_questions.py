@@ -7,7 +7,7 @@ from typing import TypedDict
 from mcq_bot.db.connection import get_engine
 from mcq_bot.db.db_types import ProcessedRow
 from mcq_bot.db.parsers.base import BaseParser
-from mcq_bot.db.parsers.excel import ExcelParser
+from mcq_bot.db.parsers.openai import OpenAiParser
 from mcq_bot.db.schema import Base
 from mcq_bot.managers.question import QuestionManager
 from mcq_bot.utils.logger import setup_logging
@@ -36,7 +36,7 @@ def _log_summary(summary: dict[str, FileSummary]):
         )
 
 
-def _process_files(
+def _parse_files(
     files: list[Path], parser: BaseParser
 ) -> list[tuple[str, list[ProcessedRow]]]:
     """Run parser over all the provided files."""
@@ -45,7 +45,7 @@ def _process_files(
         processed_rows = parser.parse(file)
         processed_files.append((file.name, processed_rows))
         _logger.info(
-            "Processed %s (%s questions) successfully", str(file), len(processed_rows)
+            "Parsed %s (%s questions) successfully", str(file), len(processed_rows)
         )
     return processed_files
 
@@ -58,15 +58,20 @@ def process_folder(folder: Path, parser: BaseParser) -> dict[str, FileSummary]:
 
     # Recursive
     files = list(folder.glob("**/*.xlsx"))
-    processed_files = _process_files(files, parser)
+    processed_files = _parse_files(files, parser)
     for filename, rows in processed_files:
         summary[filename]["total"] = len(rows)
-        result = QuestionManager.bulk_add(rows, filename)
-        summary[filename]["added"] = len(result["added"])
-        summary[filename]["duplicate"] = len(result["duplicate"])
+        try:
+            result = QuestionManager.bulk_add(rows, filename)
+            summary[filename]["added"] = len(result["added"])
+            summary[filename]["duplicate"] = len(result["duplicate"])
+        except Exception:
+            _logger.exception(
+                "Failed to add questions for filename %s to DB:", filename
+            )
+
     _logger.info("Processed %s files successfully", len(files))
 
-    # Add to DB
     return summary
 
 
@@ -88,6 +93,6 @@ if __name__ == "__main__":
 
     questions_path = _make_path_absolute(Path(sys.argv[1]))
 
-    result = process_folder(questions_path, ExcelParser())
+    result = process_folder(questions_path, OpenAiParser())
 
     _log_summary(result)

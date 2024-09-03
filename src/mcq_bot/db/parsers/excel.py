@@ -30,10 +30,10 @@ class ExcelParser(BaseParser):
     """
 
     def _extract_question(self, row: Tuple[Cell, ...]):
-        question: QuestionType = {
-            "text": str(row[1].value).strip(),
-            "explanation": str(row[8].value).strip(),
-        }
+        question = QuestionType(
+            text=str(row[1].value).strip(),
+            explanation=str(row[8].value).strip(),
+        )
         return question
 
     def _process_row(
@@ -61,11 +61,11 @@ class ExcelParser(BaseParser):
 
             formatted_text = val[:1].upper() + val[1:]
 
-            answer: AnswerType = {
-                "is_correct": answer_keys[idx] == correct_letter,
-                "key": idx,
-                "text": formatted_text,
-            }
+            answer = AnswerType(
+                is_correct=answer_keys[idx] == correct_letter,
+                key=idx,
+                text=formatted_text,
+            )
             answers.append(answer)
 
         # There must be exactly one correct answer
@@ -73,10 +73,10 @@ class ExcelParser(BaseParser):
             validate_only_one_correct_answer(answers)
         except NoCorrectAnswerException as e:
             raise NoCorrectAnswerException(
-                f"Error while processing 'question' {question["text"][:50]}...",
+                f"Error while processing 'question' {question.text[:50]}...",
             ) from e
 
-        return {"question": question, "answers": answers}
+        return ProcessedRow(question=question, answers=answers)
 
     def parse(self, path: Path) -> list[ProcessedRow]:
         """

@@ -110,11 +110,11 @@ class QuestionManager(BaseManager):
         filename_orm = FilenameManager.fetch_or_create(filename)
 
         for row in rows:
-            answers = row["answers"]
-            question_text = row["question"]["text"]
+            answers = row.answers
+            question_text = row.question.text
             question = Question(
                 text=question_text,
-                explanation=row["question"]["explanation"],
+                explanation=row.question.explanation,
                 filename_id=filename_orm.id,
             )
 
@@ -141,7 +141,12 @@ class QuestionManager(BaseManager):
                 continue
             else:
                 for answer_type in answers:
-                    answer = Answer(question=question, **answer_type)
+                    answer = Answer(
+                        question=question,
+                        is_correct=answer_type.is_correct,
+                        key=answer_type.key,
+                        text=answer_type.text,
+                    )
                     s.add(answer)
                 summary["added"].append(row)
                 _logger.info(

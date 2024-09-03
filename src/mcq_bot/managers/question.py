@@ -124,18 +124,10 @@ class QuestionManager(BaseManager):
 
             except IntegrityError:
                 s.rollback()
-                dup_question = s.scalar(
-                    select(Question).where(Question.text == question_text)
-                )
-                if not dup_question:
-                    raise ValueError(
-                        f"Could not find question with text '{question_text}'"
-                    )
                 _logger.warning(
-                    "Skipped adding question '%s' in '%s' - already exists in '%s' ",
+                    "Skipped adding question '%s' in '%s' - already exists in DB",
                     question.text,
                     filename,
-                    dup_question.filename,
                 )
                 summary["duplicate"].append(row)
                 continue

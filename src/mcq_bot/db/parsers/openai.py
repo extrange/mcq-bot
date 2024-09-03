@@ -40,7 +40,7 @@ class OpenAiParser(BaseParser):
         self.client = AsyncOpenAI(api_key=Settings.OPENAI_API_KEY.get_secret_value())
         self.queue: asyncio.Queue[dict[str, str]] = asyncio.Queue()
         self.concurrent_requests = concurrent_requests
-        self.tasks: list[asyncio.Task[ProcessedRow]] = []
+        self.raw_results: list[ProcessedRow | None] = []
 
     def _format_row_to_dict(
         self, row: tuple[Cell, ...], headers: tuple[Cell, ...]
@@ -98,7 +98,8 @@ class OpenAiParser(BaseParser):
     async def _worker(self, pbar: tqdm):
         while True:
             formatted_row = await self.queue.get()
-            await self._llm_parse_row(formatted_row)
+            result = await self._llm_parse_row(formatted_row)
+            self.raw_results.append(result)
             pbar.update()
             self.queue.task_done()
 
@@ -108,8 +109,7 @@ class OpenAiParser(BaseParser):
         processed_rows: list[ProcessedRow] = []
         headers = list(sheet.rows)[0]
 
-        tasks: list[asyncio.Task[ProcessedRow | None]] = []
-        total = len(list(sheet.rows))
+        total = len(list(sheet.rows)) - 1  # Don't count the header row
 
         with tqdm(total=total, desc=path.name) as pbar:
             workers = [
@@ -124,7 +124,7 @@ class OpenAiParser(BaseParser):
             await self.queue.join()
             [w.cancel() for w in workers]
 
-            processed_rows = [r for r in [r.result() for r in tasks] if r is not None]
+            processed_rows = [r for r in self.raw_results if r is not None]
 
         return processed_rows
 

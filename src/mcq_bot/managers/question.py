@@ -123,7 +123,7 @@ class QuestionManager(BaseManager):
                 s.flush()
 
             except IntegrityError:
-                s.rollback()
+                s.rollback()  # This rollsback all progress
                 _logger.warning(
                     "Skipped adding question '%s' in '%s' - already exists in DB",
                     question.text,
@@ -140,6 +140,7 @@ class QuestionManager(BaseManager):
                         text=answer_type.text,
                     )
                     s.add(answer)
+                s.commit()  # We need to commit here, otherwise all progress will be loss when the rollback() above happens
                 summary["added"].append(row)
                 _logger.info(
                     "Added question %s... and %s answers to db",

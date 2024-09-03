@@ -26,6 +26,8 @@ class OpenAiParser(BaseParser):
     Each row is passed as a JSON dict to the LLM, with the keys being the cells in the first row of the file (the headers).
 
     As a result, the format can be variable.
+
+    Note: Use a new instance for each file.
     """
 
     MODEL = "gpt-4o-mini"
